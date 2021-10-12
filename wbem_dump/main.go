@@ -105,9 +105,9 @@ func main() {
 		namespaces = []string{*namespace}
 	}
 
-	fmt.Println("Namespace：", namespaces)
+	fmt.Println("Processing namespaces:", namespaces)
 	for _, ns := range namespaces {
-		fmt.Println("Start processing ", ns)
+		fmt.Println("Processing namespace:", ns)
 		dumpNS(c, ns)
 	}
 	if len(namespaces) == 0 {
@@ -121,7 +121,7 @@ func main() {
 func dumpNS(c *gowbem.ClientCIMXML, ns string) {
 	qualifiers, e := c.EnumerateQualifierTypes(context.Background(), ns)
 	if nil != e {
-		fmt.Println("Enumerating QualifierType fail，", e)
+		fmt.Println("Enumerating QualifierType failure，", e)
 		// return
 	}
 
@@ -179,7 +179,7 @@ func dumpNS(c *gowbem.ClientCIMXML, ns string) {
 	}
 
 	if *onlyclass {
-		fmt.Println("Command space ", ns, "Under：")
+		fmt.Println("Namespace", ns, "contains classes：", classNames)
 		for _, className := range classNames {
 			fmt.Println(className)
 		}
@@ -187,13 +187,13 @@ func dumpNS(c *gowbem.ClientCIMXML, ns string) {
 	}
 
 	instancePaths := make(map[string]error, 1024)
-	fmt.Println("Command space ", ns, "Under：", classNames)
+	fmt.Println("Namespace", ns, "contains classes：", classNames)
 
 	for _, className := range classNames {
 		timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 		class, err := c.GetClass(timeCtx, ns, className, true, true, true, nil)
 		if err != nil {
-			fmt.Println("Failed to take several names - ", err)
+			fmt.Println("Failed to take several names:", err)
 		}
 
 		nsPath := strings.Replace(ns, "/", "#", -1)
