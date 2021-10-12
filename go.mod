@@ -1,4 +1,4 @@
-module github.com/runner-mei/gowbem
+module github.com/rpunt/gowbem
 
 go 1.13
 
