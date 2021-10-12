@@ -19,18 +19,18 @@ import (
 )
 
 var (
-	schema    = flag.String("scheme", "", "url 的 scheme, 当值为空时根据 port 的值自动选择: 5988 = http, 5989 = https, 缺省值为 http")
-	host      = flag.String("host", "192.168.1.157", "主机的 IP 地址")
-	port      = flag.String("port", "0", "主机上 CIM 服务的端口号, 当值为 0 时根据 schema 的值自动选择: http = 5988, https = 5989 ")
-	path      = flag.String("path", "/cimom", "CIM 服务访问路径")
-	namespace = flag.String("namespace", "", "CIM 的命名空间, 缺省值： root/cimv2")
-	classname = flag.String("class", "", "CIM 的的类名")
-	onlyclass = flag.Bool("onlyclass", false, "仅列出类名")
+	schema    = flag.String("scheme", "", "The scheme of url, when the value is empty, it is automatically selected according to the value of port: 5988 = http, 5989 = https, the default value is http")
+	host      = flag.String("host", "192.168.1.157", "IP address of the host")
+	port      = flag.String("port", "0", "The port number of the CIM service on the host, when the value is 0, it is automatically selected according to the value of the schema: http = 5988, https = 5989 ")
+	path      = flag.String("path", "/cimom", "CIM service access path")
+	namespace = flag.String("namespace", "", "CIM namespace, default value: root/cimv2")
+	classname = flag.String("class", "", "CIM's class name")
+	onlyclass = flag.Bool("onlyclass", false, "List only class names")
 
-	username     = flag.String("username", "root", "用户名")
-	userpassword = flag.String("password", "root", "用户密码")
-	output       = flag.String("output", "", "结果的输出目录, 缺省值为当前目录")
-	debug        = flag.Bool("debug", true, "是不是在调试")
+	username     = flag.String("username", "root", "username")
+	userpassword = flag.String("password", "root", "user password")
+	output       = flag.String("output", "", "The output directory of the result, the default value is the current directory")
+	debug        = flag.Bool("debug", true, "Are you debugging?")
 )
 
 func createURI() *url.URL {
@@ -44,8 +44,8 @@ func createURI() *url.URL {
 
 func main() {
 	flag.Usage = func() {
-		fmt.Println("使用方法： wbem_dump -host=192.168.1.157 -port=5988 -username=root -password=rootpwd\r\n" +
-			"可用选项")
+		fmt.Println("Instructions： wbem_dump -host=192.168.1.157 -port=5988 -username=root -password=rootpwd\r\n" +
+			"Available options")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -83,7 +83,7 @@ func main() {
 
 	c, e := gowbem.NewClientCIMXML(createURI(), true)
 	if nil != e {
-		log.Fatalln("连接失败，", e)
+		log.Fatalln("Connection failed，", e)
 	}
 
 	if *classname != "" && *namespace != "" {
@@ -99,29 +99,29 @@ func main() {
 		var err error
 		namespaces, err = c.EnumerateNamespaces(timeCtx, []string{"root/cimv2"}, 10*time.Second, nil)
 		if nil != err {
-			log.Fatalln("连接失败，", err)
+			log.Fatalln("Connection failed，", err)
 		}
 	} else {
 		namespaces = []string{*namespace}
 	}
 
-	fmt.Println("命令空间有：", namespaces)
+	fmt.Println("Namespace：", namespaces)
 	for _, ns := range namespaces {
-		fmt.Println("开始处理", ns)
+		fmt.Println("Start processing ", ns)
 		dumpNS(c, ns)
 	}
 	if len(namespaces) == 0 {
-		fmt.Println("导出失败！")
+		fmt.Println("Export failed！")
 		os.Exit(1)
 		return
 	}
-	fmt.Println("导出成功！")
+	fmt.Println("Successfully exported！")
 }
 
 func dumpNS(c *gowbem.ClientCIMXML, ns string) {
 	qualifiers, e := c.EnumerateQualifierTypes(context.Background(), ns)
 	if nil != e {
-		fmt.Println("枚举 QualifierType 失败，", e)
+		fmt.Println("Enumerating QualifierType fail，", e)
 		// return
 	}
 
@@ -129,7 +129,7 @@ func dumpNS(c *gowbem.ClientCIMXML, ns string) {
 		nsPath := strings.Replace(ns, "/", "#", -1)
 		nsPath = strings.Replace(nsPath, "\\", "@", -1)
 
-		/// @begin 将 Qualifier 定义写到文件
+		/// @begin will Qualifier Write definition to file
 		filename := filepath.Join(*output, nsPath, "qa.xml")
 		if err := os.MkdirAll(filepath.Join(*output, nsPath), 666); err != nil && !os.IsExist(err) {
 			log.Fatalln(err)
@@ -169,17 +169,17 @@ func dumpNS(c *gowbem.ClientCIMXML, ns string) {
 	classNames, e := c.EnumerateClassNames(context.Background(), ns, "", true)
 	if nil != e {
 		if !gowbem.IsErrNotSupported(e) && !gowbem.IsEmptyResults(e) {
-			fmt.Println("枚举类名失败，", e)
+			fmt.Println("Failed to enumerate class name，", e)
 		}
 		return
 	}
 	if 0 == len(classNames) {
-		fmt.Println("没有类定义？，")
+		fmt.Println("No class definition？，")
 		return
 	}
 
 	if *onlyclass {
-		fmt.Println("命令空间 ", ns, "下有：")
+		fmt.Println("Command space ", ns, "Under：")
 		for _, className := range classNames {
 			fmt.Println(className)
 		}
@@ -187,19 +187,19 @@ func dumpNS(c *gowbem.ClientCIMXML, ns string) {
 	}
 
 	instancePaths := make(map[string]error, 1024)
-	fmt.Println("命令空间 ", ns, "下有：", classNames)
+	fmt.Println("Command space ", ns, "Under：", classNames)
 
 	for _, className := range classNames {
 		timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 		class, err := c.GetClass(timeCtx, ns, className, true, true, true, nil)
 		if err != nil {
-			fmt.Println("取数名失败 - ", err)
+			fmt.Println("Failed to take several names - ", err)
 		}
 
 		nsPath := strings.Replace(ns, "/", "#", -1)
 		nsPath = strings.Replace(nsPath, "\\", "@", -1)
 
-		/// @begin 将类定义写到文件
+		/// @begin Write class definition to file
 		filename := filepath.Join(*output, nsPath, className+".xml")
 		if err := os.MkdirAll(filepath.Join(*output, nsPath), 666); err != nil && !os.IsExist(err) {
 			log.Fatalln(err)
@@ -214,7 +214,7 @@ func dumpNS(c *gowbem.ClientCIMXML, ns string) {
 
 	for key, err := range instancePaths {
 		if err != nil {
-			fmt.Println(key, "获取失败:", err)
+			fmt.Println(key, "Get failed:", err)
 		}
 	}
 }
@@ -227,7 +227,7 @@ func dumpClass(c *gowbem.ClientCIMXML, ns, className string, instancePaths map[s
 	instanceNames, err := c.EnumerateInstanceNames(timeCtx, ns, className)
 	if err != nil {
 
-		/// @begin 将类定义写到文件
+		/// @begin Write class definition to file
 		classPath := filepath.Join(*output, nsPath)
 		if e := os.MkdirAll(classPath, 666); e != nil && !os.IsExist(e) {
 			log.Fatalln(e)
@@ -249,7 +249,7 @@ func dumpClass(c *gowbem.ClientCIMXML, ns, className string, instancePaths map[s
 		return
 	}
 
-	/// @begin 将类定义写到文件
+	/// @begin Write class definition to file
 	classPath := filepath.Join(*output, nsPath, className)
 	if err := os.MkdirAll(classPath, 666); err != nil && !os.IsExist(err) {
 		log.Fatalln(err)
@@ -280,7 +280,7 @@ func dumpClass(c *gowbem.ClientCIMXML, ns, className string, instancePaths map[s
 			continue
 		}
 
-		/// @begin 将类定义写到文件
+		/// @begin Write class definition to file
 		bs, err := xml.MarshalIndent(instance, "", "  ")
 		if err != nil {
 			log.Fatalln(err)
