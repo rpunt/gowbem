@@ -11,7 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/runner-mei/gowbem"
+	"github.com/rpunt/gowbem"
 )
 
 func main() {

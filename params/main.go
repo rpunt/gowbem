@@ -3,7 +3,7 @@ package params
 import (
 	"fmt"
 
-	"github.com/runner-mei/gowbem"
+	"github.com/rpunt/gowbem"
 )
 
 func Value(name, value string) gowbem.CIMParamValue {

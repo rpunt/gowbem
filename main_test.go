@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/runner-mei/gowbem"
-	"github.com/runner-mei/gowbem/params"
+	. "github.com/rpunt/gowbem"
+	"github.com/rpunt/gowbem/params"
 )
 
 var (
