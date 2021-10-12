@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/runner-mei/gowbem"
+	"github.com/rpunt/gowbem"
 )
 
 var (
